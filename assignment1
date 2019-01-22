@@ -1,3 +1,126 @@
+#include "List.h"
+
+void EnterPatient(List & list)
+{
+
+	int n; //the number of patient form user
+	cout << "Enter the number of patient: " << endl;
+	cin >> n;
+	cout << endl;
+	for(int i = 0; i < n; i++)
+	{
+	string Name, Address, Phone, Email, careCard;
+	cout << "Enter the Name, Address, Phone, Email, careCard"
+	cin >> Name;
+	cin >> Address;
+	cin >> Phone;
+	cin >> Email;
+	cin >> careCard;
+	Patient temp(careCard);
+	temp.setName(Name);
+	temp.setAddress(Address);
+	temp.setPhone(Phone);
+	temp.setEmail(Email);
+	list.insert(temp);
+	}
+
+}
+
+void RemovePatient(List &list)
+{
+	string toBeRemoved;
+	bool flag;
+	cout << "Enter the patient number you want to remove: " << endl;
+	cin >> toBeRemoved;
+	for(int i = 0; i < list.getElementCount(); i++)
+	{
+		if(list[i].getCareCard() == toBeRemoved)
+			flag = list.remove(list[i]);
+	}
+
+	if(flag)
+		cout << "Succeessfully removed the patient." << endl;
+	else
+		cout << "Error: Not Found." << endl;
+}
+
+void SearchPatient(List &list)
+{
+	string target;
+	bool flag = false;
+	cout << "Enter the patient number you want to search: " << endl;
+	cin >> target;
+	for(int i = 0; i < list.getElementCount(); i++)
+	{
+		if(list[i].getCareCard() == target)
+			flag = true;
+	}
+	 
+	if(flag)
+		cout << "Succeessfully find the patient with careCard:" << target << endl;
+	else
+		cout << "Error: Not Found." << endl;
+}
+
+void ModifyPatient(List &list)
+{
+	string target;
+	int index = -1;
+	for(int i = 0; i < list.getElementCount(); i++)
+	{
+		if(list[i].getCareCard() == target)
+			index = i;
+	}
+	if(index == -1)
+		cout << "Error: Not Found." << endl;
+	else
+	{
+		int flag;
+		cout<<"What do you want to change?"<<endl;
+		cout<<"1.Address\t2.Name\t3.Phone\t4.Email"<<endl;
+		cin>>flag;
+		switch(flag)
+		case 1 :{cout<<"Enter new Address!"<<endl;cin>>target;list[index].setAddress(target);break;}
+		case 2 :{cout<<"Enter new Name!"<<endl;cin>>target;list[index].setName(target);break;}
+		case 3 :{cout<<"Enter new Phone!"<<endl;cin>>target;list[index].setPhone(target);break;}
+		case 4 :{cout<<"Enter new Email!"<<endl;cin>>target;list[index].setEmail(target);break;}
+		default :{"ERROR! Please enter a valid number!"<<endl;break;}
+	}
+}
+
+void PrintPatient(List &list)
+{
+	for(int i = 0; i < list.getElementCount(); i++)
+	{
+		cout << list[i];
+	}
+}
+
+
+main()
+{
+	List list;
+	int flag;
+	while(1)
+	{
+		cout<<"What do you want to do?"<<endl;
+		cout<<"1.CREATE NEW LIST OF PATIENT"<<endl;
+		cout<<"2.REMOVE PATIENT"<<endl;
+		cout<<"3.SEARCH PATIENT"<<endl;
+		cout<<"4.MODIFY PATIENT"<<endl;
+		cout<<"5.PRINT ALL PATIENT"<<endl;
+		cout<<"0.EXIT"<<endl;
+		switch(flag)
+		case 0 : {cout<<"BYE BYE";break;}
+		case 1 : {EnterPatient(list);break;}
+		case 2 : {RemovePatient(list);break;}
+		case 3 : {SearchPatient(list);break;}
+		case 4 : {ModifyPatient(list);break;}
+		case 5 : {PrintPatient(list);break;}
+		default:{cout<<"Please enter a valid number!"<<endl;}
+	}
+} //end of walkin.cpp
+
 /*
  * List.h
  *
@@ -71,7 +194,8 @@ public:
 
 }; // end List.h
 
-///////////////////////////////////
+
+
 /*
  * List.cpp
  *
@@ -87,10 +211,9 @@ public:
 #include "List.h"
 
 // Default constructor
-// This will create default list with both 0 elementCount & 0 capacity
+// This will create default list with both 0 elementCount & MAX_ELEMENT capacity
 List::List()
 {
-	Patient elements[MAX_ELEMENTS];
 	this->elementCount = 0;
 	this->capacity = MAX_ELEMENTS;
 }
@@ -107,13 +230,14 @@ int  List::getElementCount() const
 // Precondition: newElement must not already be in data collection.  
 // Postcondition: newElement inserted and elementCount has been incremented.   
 bool List::insert(const Patient& newElement) {
-	if (search(newElement)||this->elementCount==this->capacity)
+	if (search(newElement)||this->elementCount>=this->capacity)
 		return false;
 	else
 	{
 		elements[elementCount] = newElement;
 		elementCount++;
 	}
+	return true;
 }
 
 // Description: Remove an element. 
@@ -137,10 +261,19 @@ bool List::remove(const Patient& toBeRemoved) {
 		}
 		this->elementCount--;
 	}
+	return true;
 }
 
 // Description: Remove all elements.
-void List::removeAll() {}
+void List::removeAll() {
+	if(this->elementCount == 0)
+		return;
+	else
+	{
+		delete[] elements;
+		this->elementCount = 0;
+	}
+}
 
 // Description: Search for target element.
 //              Returns a pointer to the element if found,
@@ -154,7 +287,7 @@ Patient* List::search(const Patient& target) {
 }
 
 
-//////////////////////////////
+
 /*
  * Patient.h
  *
@@ -178,8 +311,8 @@ using namespace std;
 class Patient {
 
 private:
+	string Name;
 	string careCard;
-	string cardNumber;
 	string address;
 	string phone;
 	string email;
@@ -250,7 +383,9 @@ public:
 
 }; // end of Patient.h
 
-///////////////////////////////
+
+
+
 /*
  * Patient.cpp
  *
@@ -265,7 +400,6 @@ public:
 
  // You can add #include statements if you wish.
 #include <iostream>
-#include <string>
 #include "Patient.h"
 
 // Default Constructor
@@ -292,7 +426,7 @@ Patient::Patient(string aCareCard) {
 	this->phone = "To be entered";
 	if (sizeof(aCareCard) <= 10)
 	{
-		this->careCard != "0000000000";
+		this->careCard = "0000000000";
 	}
 	else
 	this->careCard = aCareCard; 
@@ -349,13 +483,8 @@ void Patient::setEmail(const string anEmail) {
 // Description: Comparison operator. Compares "this" Patient object with "rhs" Patient object.
 //              Returns true if both Patient objects have the same care card number.
 bool Patient::operator == (const Patient & rhs) {
-
 	// Compare both Patient objects
-	if (this->careCard == rhs.getCareCard())
-		return true;
-	else
-		return false;
-
+	return this->careCard == rhs.getCareCard();
 } // end of operator ==
 
 // Description: Greater than operator. Compares "this" Patient object with "rhs" Patient object.
@@ -364,11 +493,7 @@ bool Patient::operator == (const Patient & rhs) {
 bool Patient::operator > (const Patient & rhs) {
 
 	// Compare both Patient objects
-	if (this->careCard > rhs.getCareCard())
-		return true;
-	else
-		return false;
-
+	return this->careCard > rhs.getCareCard();
 } // end of operator >
 
 
@@ -382,3 +507,4 @@ ostream & operator<<(ostream & os, const Patient & p) {
 } // end of operator<<
 
 // end of Patient.cpp
+
